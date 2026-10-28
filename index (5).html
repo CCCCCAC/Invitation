@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>A Private Evening — Christmas Concert</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+DW+Pica:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #1a1208;
+    --ink-soft:   #3d2e18;
+    --parchment:  #f0e8d5;
+    --parchment-dark: #e2d4b8;
+    --gold:       #8a6a2a;
+    --gold-light: #c09a4a;
+    --rule:       #b8a070;
+    --red:        #7a2020;
+    box-sizing: border-box;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    background: #1c1510;
+    font-family: 'IM Fell English', Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ════ LOCK SCREEN ════ */
+  #lock-screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #0e0b08;
+    z-index: 100;
+    padding: 1.5rem 1rem;
+  }
+  #lock-screen.fade-out {
+    animation: fadeOut 1.2s ease forwards;
+  }
+  @keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
+
+  .lock-inner {
+    text-align: center;
+    width: 100%;
+    max-width: 620px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  .lock-ornament {
+    color: var(--gold);
+    font-size: 1.4rem; letter-spacing: 0.4em;
+    margin-bottom: 1.6rem; opacity: 0.7;
+  }
+  .lock-title {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic; color: var(--parchment);
+    font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+    letter-spacing: 0.06em; line-height: 1.6;
+    margin: 0 0 0.3rem; opacity: 0.6;
+  }
+  .lock-subtitle {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic; color: var(--gold-light);
+    font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+    letter-spacing: 0.12em; margin: 0 0 1.8rem; opacity: 0.45;
+  }
+
+  /* ── NOTE DOTS ── */
+  .note-dots {
+    display: flex; gap: 0.45rem;
+    margin-bottom: 1.6rem; height: 12px; align-items: center;
+  }
+  .note-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    border: 1px solid rgba(192,154,74,0.35);
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .note-dot.filled {
+    background: var(--gold-light);
+    border-color: var(--gold-light);
+  }
+  .note-dot.wrong {
+    background: #7a3030;
+    border-color: #7a3030;
+  }
+
+  /* ── PIANO KEYBOARD ── */
+  .piano-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    user-select: none;
+  }
+
+  .piano {
+    display: flex;
+    position: relative;
+    height: clamp(90px, 18vw, 130px);
+    width: 100%;
+    border-radius: 0 0 6px 6px;
+    overflow: visible;
+  }
+
+  /* white keys container */
+  .white-keys {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    gap: 2px;
+  }
+
+  .wkey {
+    flex: 1;
+    background: linear-gradient(to bottom, #f5f0e8 0%, #ede5d0 100%);
+    border: 1px solid #b8a878;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.08s;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wkey:active, .wkey.pressed {
+    background: linear-gradient(to bottom, #c8b87a 0%, #b8a060 100%);
+  }
+  .wkey.correct-flash {
+    background: linear-gradient(to bottom, #9ab87a 0%, #7a9860 100%);
+  }
+
+  .wkey-label {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(0.55rem, 1.4vw, 0.72rem);
+    color: rgba(100,80,40,0.5);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  /* black keys */
+  .black-keys {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 62%;
+    pointer-events: none;
+  }
+
+  .bkey {
+    position: absolute;
+    background: linear-gradient(to bottom, #1a1208 0%, #2d2010 100%);
+    border: 1px solid #0a0804;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    pointer-events: all;
+    height: 100%;
+    width: 60%;
+    transform: translateX(-50%);
+    z-index: 2;
+    transition: background 0.08s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bkey:active, .bkey.pressed {
+    background: linear-gradient(to bottom, #4a3820 0%, #3a2810 100%);
+  }
+  .bkey.correct-flash {
+    background: linear-gradient(to bottom, #3a5820 0%, #2a4810 100%);
+  }
+
+  .piano-lid {
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(to bottom, #2a1e10, #1a1208);
+    border-radius: 3px 3px 0 0;
+    border: 1px solid #0a0804;
+    margin-bottom: 0;
+  }
+
+  .lock-hint {
+    color: rgba(192,154,74,0.35);
+    font-style: italic;
+    font-size: 0.75rem; letter-spacing: 0.06em;
+    margin-top: 1.2rem; height: 1.2em;
+    transition: color 0.3s;
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+  }
+  .lock-hint.error { color: #7a4040; }
+
+  /* ════ INVITATION ════ */
+  #invitation {
+    display: none; position: relative; z-index: 1;
+    min-height: 100vh; padding: 3rem 1rem 5rem;
+  }
+  #invitation.visible {
+    display: block;
+    animation: revealPage 1.4s ease forwards;
+  }
+  @keyframes revealPage {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .paper {
+    background: var(--parchment);
+    max-width: 680px; margin: 0 auto;
+    padding: clamp(2rem, 6vw, 4.5rem) clamp(1.5rem, 7vw, 5rem);
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(138,106,42,0.15),
+      0 2px 40px rgba(0,0,0,0.6),
+      inset 0 0 80px rgba(0,0,0,0.04);
+  }
+  .paper::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.07) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 0%, rgba(0,0,0,0.05) 0%, transparent 35%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .inv-header { text-align: center; margin-bottom: 2.5rem; }
+  .inv-eyebrow {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic; font-size: 0.78rem;
+    letter-spacing: 0.22em; color: var(--gold);
+    display: block; margin-bottom: 1.4rem;
+  }
+  .holly { color: var(--red); font-size: 1.1rem; margin: 0 0.3rem; }
+  .inv-title {
+    font-size: clamp(1.7rem, 5vw, 2.6rem);
+    line-height: 1.2; color: var(--ink);
+    margin: 0 0 0.5rem; font-weight: normal;
+  }
+  .inv-title em { font-style: italic; color: var(--ink-soft); }
+  .inv-subtitle {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic; font-size: 0.9rem;
+    color: var(--gold); letter-spacing: 0.08em; margin: 0;
+  }
+
+  .ornate-rule {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 2rem 0; color: var(--rule);
+  }
+  .ornate-rule::before, .ornate-rule::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--rule); opacity: 0.5;
+  }
+  .ornate-rule span { font-size: 1rem; opacity: 0.7; flex-shrink: 0; }
+
+  .inv-body {
+    font-size: clamp(0.92rem, 2.2vw, 1.02rem);
+    line-height: 1.85; color: var(--ink-soft); margin-bottom: 2rem;
+  }
+  .inv-body p { margin: 0 0 1.1em; }
+  .inv-body .salutation { font-style: italic; color: var(--ink); font-size: 1.06rem; }
+
+  .programme-heading {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic; text-align: center;
+    font-size: 0.78rem; letter-spacing: 0.2em;
+    color: var(--gold); margin-bottom: 1.6rem;
+  }
+  .programme {
+    margin: 0 0 2.5rem; padding: 0; list-style: none;
+    border-top: 1px solid rgba(138,106,42,0.2);
+  }
+  .programme li {
+    display: grid; grid-template-columns: 1.6em 1fr;
+    gap: 0 0.9rem; padding: 1rem 0;
+    border-bottom: 1px solid rgba(138,106,42,0.12);
+    align-items: start;
+  }
+  .prog-num {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic; color: var(--gold);
+    font-size: 0.78rem; padding-top: 0.12em; opacity: 0.7;
+  }
+  .prog-composer {
+    font-size: 0.72rem; letter-spacing: 0.1em;
+    color: var(--gold); opacity: 0.65;
+    display: block; margin-bottom: 0.18rem;
+    text-transform: uppercase;
+  }
+  .prog-title { font-style: italic; font-size: 1rem; color: var(--ink); line-height: 1.35; }
+  .prog-note { font-size: 0.78rem; color: var(--gold); opacity: 0.7; margin-top: 0.25rem; font-style: italic; }
+
+  .inv-closing { font-size: clamp(0.9rem, 2vw, 1rem); line-height: 1.85; color: var(--ink-soft); }
+  .inv-closing p { margin: 0 0 1em; }
+  .inv-closing .valediction { font-style: italic; color: var(--ink); }
+  .signature { margin-top: 2.5rem; font-size: clamp(1.2rem, 3.5vw, 1.6rem); font-style: italic; color: var(--ink); line-height: 1.4; }
+  .signature .date-line { display: block; font-size: 0.78rem; letter-spacing: 0.1em; color: var(--gold); font-style: normal; margin-top: 0.4rem; opacity: 0.7; }
+
+  .inv-footer { margin-top: 3rem; text-align: center; }
+  .seal { font-size: 2.4rem; line-height: 1; margin-bottom: 0.5rem; display: block; }
+  .footer-text { font-family: 'IM Fell DW Pica', Georgia, serif; font-style: italic; font-size: 0.72rem; letter-spacing: 0.14em; color: var(--gold); opacity: 0.5; }
+
+  @media (max-width: 520px) {
+    .paper { padding: 2rem 1.4rem 2.5rem; }
+    .inv-title { font-size: 1.5rem; }
+    .piano { height: 80px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════ LOCK SCREEN ════ -->
+<div id="lock-screen" role="main" aria-label="Piano keyboard entry">
+  <div class="lock-inner">
+    <div class="lock-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+    <p class="lock-title">A private correspondence awaits.</p>
+    <p class="lock-subtitle">Play the phrase to enter.</p>
+
+    <!-- progress dots -->
+    <div class="note-dots" id="note-dots">
+      <div class="note-dot" id="dot-0"></div>
+      <div class="note-dot" id="dot-1"></div>
+      <div class="note-dot" id="dot-2"></div>
+      <div class="note-dot" id="dot-3"></div>
+      <div class="note-dot" id="dot-4"></div>
+      <div class="note-dot" id="dot-5"></div>
+      <div class="note-dot" id="dot-6"></div>
+      <div class="note-dot" id="dot-7"></div>
+    </div>
+
+    <!-- piano -->
+    <div class="piano-wrap">
+      <div class="piano-lid"></div>
+      <div class="piano" id="piano">
+        <div class="white-keys" id="white-keys"></div>
+        <div class="black-keys" id="black-keys"></div>
+      </div>
+    </div>
+
+    <p class="lock-hint" id="hint-text" aria-live="polite"></p>
+  </div>
+</div>
+
+<!-- ════ INVITATION ════ -->
+<div id="invitation" aria-label="Concert invitation">
+  <div class="paper">
+    <header class="inv-header">
+      <span class="inv-eyebrow">
+        <span class="holly">✦</span>
+        &nbsp; You are cordially invited &nbsp;
+        <span class="holly">✦</span>
+      </span>
+      <h1 class="inv-title">A <em>Private</em> Christmas Concert</h1>
+      <p class="inv-subtitle">Christmas Eve, 2025 &nbsp;·&nbsp; Online, Just for You</p>
+    </header>
+
+    <div class="ornate-rule"><span>❧</span></div>
+
+    <div class="inv-body">
+      <p class="salutation">My dearest friend,</p>
+      <p>
+        You have solved the riddle — so this letter was always meant for you.
+        On Christmas Eve, I would like to invite you to something very small and
+        very private: a concert of piano music, played by my own hands, and
+        offered across the distance between our two cities.
+      </p>
+      <p>
+        I know you have been waiting to hear me play. Consider this your evening.
+      </p>
+    </div>
+
+    <div class="ornate-rule"><span>✦</span></div>
+
+    <p class="programme-heading">— Programme —</p>
+
+    <ol class="programme">
+      <li>
+        <span class="prog-num">i.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Felix Mendelssohn</span>
+          <span class="prog-title">Venetian Boat Song in F♯ minor, Op. 30 No. 6</span>
+        </div>
+      </li>
+      <li>
+        <span class="prog-num">ii.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Felix Mendelssohn</span>
+          <span class="prog-title">Spring Song, Op. 62 No. 6</span>
+        </div>
+      </li>
+      <li>
+        <span class="prog-num">iii.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Frédéric Chopin</span>
+          <span class="prog-title">Nocturne in E♭ major, Op. 9 No. 2</span>
+        </div>
+      </li>
+      <li>
+        <span class="prog-num">iv.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Ryuichi Sakamoto</span>
+          <span class="prog-title">Merry Christmas Mr. Lawrence</span>
+          <p class="prog-note">— at your request</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="ornate-rule"><span>❧</span></div>
+
+    <div class="inv-closing">
+      <p>
+        The programme is arranged to carry you gently from water to light,
+        from light to evening, and at last to this — the piece you asked for,
+        saved for the end, as a gift.
+      </p>
+      <p class="valediction">Until Christmas Eve, I remain —</p>
+    </div>
+
+    <div class="signature">
+      Yours, with warmth across the miles
+      <span class="date-line">Christmas Eve &nbsp;·&nbsp; 2025</span>
+    </div>
+
+    <footer class="inv-footer">
+      <div class="ornate-rule" style="margin-top:2.5rem;"><span>✦</span></div>
+      <span class="seal">🕯️</span>
+      <p class="footer-text">This invitation was written only for you.</p>
+    </footer>
+  </div>
+</div>
+
+<script>
+// ── NOTE DEFINITIONS ──
+// Keys displayed: B3 C4 D4 E4 F4 G4 A4 B4  (white)
+//                    C#4  D#4    F#4 G#4 A#4  (black)
+// Password sequence: 2 0 0 5 0 1 3 0
+// Mapping: 1=C4 2=D4 3=E4 4=F4 5=G4 6=A4 7=B4 0=B3
+// So: D4 B3 B3 G4 B3 C4 E4 B3
+
+const WHITE_KEYS = [
+  { note: 'B3',  freq: 246.94, label: 'B' },
+  { note: 'C4',  freq: 261.63, label: 'C' },
+  { note: 'D4',  freq: 293.66, label: 'D' },
+  { note: 'E4',  freq: 329.63, label: 'E' },
+  { note: 'F4',  freq: 349.23, label: 'F' },
+  { note: 'G4',  freq: 392.00, label: 'G' },
+  { note: 'A4',  freq: 440.00, label: 'A' },
+  { note: 'B4',  freq: 493.88, label: 'B' },
+];
+
+// black keys: positioned as fraction of white key width
+// Between B3-C4: no black key (B3 is edge)
+// C#4 between C4(idx1) and D4(idx2): pos = 1 + 0.7
+// D#4 between D4(idx2) and E4(idx3): pos = 2 + 0.7
+// no black between E4-F4
+// F#4 between F4(idx4) and G4(idx5): pos = 4 + 0.7
+// G#4 between G4(idx5) and A4(idx6): pos = 5 + 0.7
+// A#4 between A4(idx6) and B4(idx7): pos = 6 + 0.7
+const BLACK_KEYS = [
+  { note: 'Cs4', freq: 277.18, afterIdx: 1 },
+  { note: 'Ds4', freq: 311.13, afterIdx: 2 },
+  { note: 'Fs4', freq: 369.99, afterIdx: 4 },
+  { note: 'Gs4', freq: 415.30, afterIdx: 5 },
+  { note: 'As4', freq: 466.16, afterIdx: 6 },
+];
+
+// Password as note sequence
+const PASSWORD_NOTES = ['D4','B3','B3','G4','B3','C4','E4','B3']; // 20050130
+
+let inputSequence = [];
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playNote(freq, duration = 0.5) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration + 0.05);
+  } catch(e) {}
+}
+
+// Build keyboard
+const whiteContainer = document.getElementById('white-keys');
+const blackContainer = document.getElementById('black-keys');
+const wEls = {};
+const bEls = {};
+
+WHITE_KEYS.forEach((k, i) => {
+  const el = document.createElement('div');
+  el.className = 'wkey';
+  el.dataset.note = k.note;
+  el.dataset.freq = k.freq;
+  const lbl = document.createElement('span');
+  lbl.className = 'wkey-label';
+  lbl.textContent = k.label;
+  el.appendChild(lbl);
+  whiteContainer.appendChild(el);
+  wEls[k.note] = el;
+});
+
+BLACK_KEYS.forEach((k) => {
+  const el = document.createElement('div');
+  el.className = 'bkey';
+  el.dataset.note = k.note;
+  el.dataset.freq = k.freq;
+  blackContainer.appendChild(el);
+  bEls[k.note] = el;
+});
+
+// Position black keys after layout
+function positionBlackKeys() {
+  const pianoEl = document.getElementById('piano');
+  const wKeyEls = whiteContainer.querySelectorAll('.wkey');
+  const pianoRect = pianoEl.getBoundingClientRect();
+
+  BLACK_KEYS.forEach((k, i) => {
+    const el = bEls[k.note];
+    const leftKey  = wKeyEls[k.afterIdx];
+    const rightKey = wKeyEls[k.afterIdx + 1];
+    if (!leftKey || !rightKey) return;
+    const leftRect  = leftKey.getBoundingClientRect();
+    const rightRect = rightKey.getBoundingClientRect();
+    const centerX   = (leftRect.right + rightRect.left) / 2 - pianoRect.left;
+    const keyW      = (leftRect.width * 0.62);
+    el.style.left   = (centerX - keyW / 2) + 'px';
+    el.style.width  = keyW + 'px';
+  });
+}
+
+window.addEventListener('load', positionBlackKeys);
+window.addEventListener('resize', positionBlackKeys);
+
+// Key press handler
+function handleKeyPress(note, freq, el) {
+  playNote(parseFloat(freq));
+  el.classList.add('pressed');
+  setTimeout(() => el.classList.remove('pressed'), 200);
+
+  inputSequence.push(note);
+  const idx = inputSequence.length - 1;
+
+  // update dot
+  const dot = document.getElementById('dot-' + idx);
+  if (dot) dot.classList.add('filled');
+
+  if (inputSequence.length === PASSWORD_NOTES.length) {
+    setTimeout(() => checkSequence(), 250);
+  }
+}
+
+function checkSequence() {
+  const correct = inputSequence.every((n, i) => n === PASSWORD_NOTES[i]);
+  if (correct) {
+    // flash all pressed keys green
+    PASSWORD_NOTES.forEach(n => {
+      const el = wEls[n] || bEls[n];
+      if (el) { el.classList.add('correct-flash'); setTimeout(() => el.classList.remove('correct-flash'), 600); }
+    });
+    setTimeout(() => {
+      document.getElementById('lock-screen').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('invitation').classList.add('visible');
+      }, 1200);
+    }, 400);
+  } else {
+    // shake and reset
+    const dots = document.querySelectorAll('.note-dot');
+    dots.forEach(d => { d.classList.remove('filled'); d.classList.add('wrong'); });
+    const hint = document.getElementById('hint-text');
+    hint.textContent = 'Listen again — try once more.';
+    hint.classList.add('error');
+    document.getElementById('piano').animate(
+      [{transform:'translateX(-5px)'},{transform:'translateX(5px)'},
+       {transform:'translateX(-4px)'},{transform:'translateX(4px)'},
+       {transform:'translateX(0)'}],
+      {duration:380, easing:'ease-out'}
+    );
+    setTimeout(() => {
+      dots.forEach(d => { d.classList.remove('wrong'); });
+      hint.textContent = '';
+      hint.classList.remove('error');
+      inputSequence = [];
+    }, 800);
+  }
+}
+
+// Attach events to white keys
+whiteContainer.querySelectorAll('.wkey').forEach(el => {
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    handleKeyPress(el.dataset.note, el.dataset.freq, el);
+  });
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    handleKeyPress(el.dataset.note, el.dataset.freq, el);
+  }, { passive: false });
+});
+
+// Attach events to black keys
+blackContainer.querySelectorAll('.bkey').forEach(el => {
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    handleKeyPress(el.dataset.note, el.dataset.freq, el);
+  });
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    handleKeyPress(el.dataset.note, el.dataset.freq, el);
+  }, { passive: false });
+});
+</script>
+</body>
+</html>
