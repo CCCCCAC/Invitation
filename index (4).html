@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>A Private Evening — Christmas Concert</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+DW+Pica:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #1a1208;
+    --ink-soft:   #3d2e18;
+    --parchment:  #f0e8d5;
+    --parchment-dark: #e2d4b8;
+    --gold:       #8a6a2a;
+    --gold-light: #c09a4a;
+    --rule:       #b8a070;
+    --red:        #7a2020;
+    box-sizing: border-box;
+  }
+
+  *, *::before, *::after { box-sizing: inherit; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink:        #1a1208;
+      --parchment:  #f0e8d5;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: #1c1510;
+    font-family: 'IM Fell English', Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ════════════════════════════════
+     LOCK SCREEN
+  ════════════════════════════════ */
+  #lock-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #0e0b08;
+    z-index: 100;
+    padding: 2rem;
+  }
+
+  #lock-screen.fade-out {
+    animation: fadeOut 1.2s ease forwards;
+  }
+
+  @keyframes fadeOut {
+    to { opacity: 0; pointer-events: none; }
+  }
+
+  .lock-inner {
+    text-align: center;
+    max-width: 380px;
+  }
+
+  .lock-ornament {
+    color: var(--gold);
+    font-size: 2rem;
+    letter-spacing: 0.4em;
+    margin-bottom: 2.5rem;
+    opacity: 0.7;
+  }
+
+  .lock-title {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    color: var(--parchment);
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    letter-spacing: 0.08em;
+    line-height: 1.6;
+    margin: 0 0 0.5rem;
+    opacity: 0.6;
+  }
+
+  .lock-subtitle {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    color: var(--gold-light);
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    letter-spacing: 0.14em;
+    margin: 0 0 3rem;
+    opacity: 0.5;
+  }
+
+  .lock-rule {
+    width: 120px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 2.5rem;
+    opacity: 0.3;
+  }
+
+  #password-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(192, 154, 74, 0.4);
+    color: var(--parchment);
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.35em;
+    text-align: center;
+    width: 220px;
+    padding: 0.5rem 0.25rem;
+    outline: none;
+    -webkit-text-security: disc;
+    caret-color: var(--gold-light);
+    display: block;
+    margin: 0 auto 1rem;
+  }
+
+  #password-input:focus {
+    border-bottom-color: rgba(192, 154, 74, 0.8);
+  }
+
+  #password-input::placeholder {
+    color: rgba(240, 232, 213, 0.2);
+    letter-spacing: 0.2em;
+  }
+
+  .lock-hint {
+    color: rgba(192, 154, 74, 0.35);
+    font-style: italic;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    margin-top: 0.5rem;
+    height: 1.2em;
+    transition: color 0.3s;
+  }
+
+  .lock-hint.error {
+    color: #7a4040;
+  }
+
+  /* ════════════════════════════════
+     INVITATION PAGE
+  ════════════════════════════════ */
+  #invitation {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 3rem 1rem 5rem;
+  }
+
+  #invitation.visible {
+    display: block;
+    animation: revealPage 1.4s ease forwards;
+  }
+
+  @keyframes revealPage {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .paper {
+    background: var(--parchment);
+    max-width: 680px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 4.5rem) clamp(1.5rem, 7vw, 5rem);
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(138,106,42,0.15),
+      0 2px 40px rgba(0,0,0,0.6),
+      inset 0 0 80px rgba(0,0,0,0.04);
+  }
+
+  /* aged paper edges */
+  .paper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.07) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 0%, rgba(0,0,0,0.05) 0%, transparent 35%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* ── HEADER ── */
+  .inv-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .inv-eyebrow {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 1.4rem;
+  }
+
+  .holly {
+    color: var(--red);
+    font-size: 1.1rem;
+    margin: 0 0.3rem;
+  }
+
+  .inv-title {
+    font-size: clamp(1.7rem, 5vw, 2.6rem);
+    line-height: 1.2;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+    font-weight: normal;
+  }
+
+  .inv-title em {
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  .inv-subtitle {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+
+  /* ── RULES ── */
+  .ornate-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 2rem 0;
+    color: var(--rule);
+  }
+
+  .ornate-rule::before,
+  .ornate-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    opacity: 0.5;
+  }
+
+  .ornate-rule span {
+    font-size: 1rem;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+
+  /* ── BODY TEXT ── */
+  .inv-body {
+    font-size: clamp(0.92rem, 2.2vw, 1.02rem);
+    line-height: 1.85;
+    color: var(--ink-soft);
+    margin-bottom: 2rem;
+  }
+
+  .inv-body p {
+    margin: 0 0 1.1em;
+  }
+
+  .inv-body .salutation {
+    font-style: italic;
+    color: var(--ink);
+    font-size: 1.06rem;
+  }
+
+  /* ── PROGRAMME ── */
+  .programme-heading {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    text-align: center;
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 1.6rem;
+  }
+
+  .programme {
+    margin: 0 0 2.5rem;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid rgba(138,106,42,0.2);
+  }
+
+  .programme li {
+    display: grid;
+    grid-template-columns: 1.6em 1fr;
+    gap: 0 0.9rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(138,106,42,0.12);
+    align-items: start;
+  }
+
+  .prog-num {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 0.78rem;
+    padding-top: 0.12em;
+    opacity: 0.7;
+  }
+
+  .prog-content {}
+
+  .prog-composer {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    opacity: 0.65;
+    display: block;
+    margin-bottom: 0.18rem;
+    text-transform: uppercase;
+  }
+
+  .prog-title {
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+
+  .prog-note {
+    font-size: 0.78rem;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-top: 0.25rem;
+    font-style: italic;
+  }
+
+  /* ── CLOSING ── */
+  .inv-closing {
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    line-height: 1.85;
+    color: var(--ink-soft);
+  }
+
+  .inv-closing p { margin: 0 0 1em; }
+
+  .inv-closing .valediction {
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  .signature {
+    margin-top: 2.5rem;
+    font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .signature .date-line {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    font-style: normal;
+    margin-top: 0.4rem;
+    opacity: 0.7;
+  }
+
+  /* ── FOOTER ── */
+  .inv-footer {
+    margin-top: 3rem;
+    text-align: center;
+  }
+
+  .seal {
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .footer-text {
+    font-family: 'IM Fell DW Pica', Georgia, serif;
+    font-style: italic;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+    opacity: 0.5;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 520px) {
+    .paper { padding: 2rem 1.4rem 2.5rem; }
+    .inv-title { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════ LOCK SCREEN ════ -->
+<div id="lock-screen" role="main" aria-label="Password entry">
+  <div class="lock-inner">
+    <div class="lock-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+    <p class="lock-title">A private correspondence awaits.</p>
+    <p class="lock-subtitle">Enter the answer to your riddle.</p>
+    <div class="lock-rule"></div>
+    <input
+      type="tel"
+      id="password-input"
+      placeholder="· · · · · · · ·"
+      maxlength="8"
+      aria-label="Password"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    >
+    <p class="lock-hint" id="hint-text" aria-live="polite"></p>
+  </div>
+</div>
+
+<!-- ════ INVITATION ════ -->
+<div id="invitation" aria-label="Concert invitation">
+  <div class="paper">
+
+    <!-- Header -->
+    <header class="inv-header">
+      <span class="inv-eyebrow">
+        <span class="holly">✦</span>
+        &nbsp; You are cordially invited &nbsp;
+        <span class="holly">✦</span>
+      </span>
+      <h1 class="inv-title">A <em>Private</em> Christmas Concert</h1>
+      <p class="inv-subtitle">Christmas Eve, 2025 &nbsp;·&nbsp; Online, Just for You</p>
+    </header>
+
+    <div class="ornate-rule"><span>❧</span></div>
+
+    <!-- Opening -->
+    <div class="inv-body">
+      <p class="salutation">My dearest friend,</p>
+      <p>
+        You have solved the riddle — so this letter was always meant for you.
+        On Christmas Eve, I would like to invite you to something very small and
+        very private: a concert of piano music, played by my own hands, and
+        offered across the distance between our two cities.
+      </p>
+      <p>
+        I know you have been waiting to hear me play. Consider this your evening.
+      </p>
+    </div>
+
+    <div class="ornate-rule"><span>✦</span></div>
+
+    <!-- Programme -->
+    <p class="programme-heading">— Programme —</p>
+
+    <ol class="programme">
+      <li>
+        <span class="prog-num">i.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Felix Mendelssohn</span>
+          <span class="prog-title">Venetian Boat Song in F♯ minor, Op. 30 No. 6</span>
+        </div>
+      </li>
+      <li>
+        <span class="prog-num">ii.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Felix Mendelssohn</span>
+          <span class="prog-title">Spring Song, Op. 62 No. 6</span>
+        </div>
+      </li>
+      <li>
+        <span class="prog-num">iii.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Frédéric Chopin</span>
+          <span class="prog-title">Nocturne in E♭ major, Op. 9 No. 2</span>
+        </div>
+      </li>
+      <li>
+        <span class="prog-num">iv.</span>
+        <div class="prog-content">
+          <span class="prog-composer">Ryuichi Sakamoto</span>
+          <span class="prog-title">Merry Christmas Mr. Lawrence</span>
+          <p class="prog-note">— at your request</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="ornate-rule"><span>❧</span></div>
+
+    <!-- Closing -->
+    <div class="inv-closing">
+      <p>
+        The programme is arranged to carry you gently from water to light,
+        from light to evening, and at last to this — the piece you asked for,
+        saved for the end, as a gift.
+      </p>
+      <p class="valediction">
+        Until Christmas Eve, I remain —
+      </p>
+    </div>
+
+    <div class="signature">
+      Yours, with warmth across the miles
+      <span class="date-line">Christmas Eve &nbsp;·&nbsp; 2025</span>
+    </div>
+
+    <footer class="inv-footer">
+      <div class="ornate-rule" style="margin-top:2.5rem;"><span>✦</span></div>
+      <span class="seal">🕯️</span>
+      <p class="footer-text">This invitation was written only for you.</p>
+    </footer>
+
+  </div><!-- .paper -->
+</div><!-- #invitation -->
+
+<script>
+  const input    = document.getElementById('password-input');
+  const hint     = document.getElementById('hint-text');
+  const lockEl   = document.getElementById('lock-screen');
+  const invEl    = document.getElementById('invitation');
+  const PASSWORD = '20050130';
+
+  input.focus();
+
+  input.addEventListener('input', () => {
+    hint.textContent = '';
+    hint.classList.remove('error');
+    const val = input.value.trim();
+    if (val.length === PASSWORD.length) {
+      if (val === PASSWORD) {
+        lockEl.classList.add('fade-out');
+        setTimeout(() => {
+          lockEl.style.display = 'none';
+          invEl.classList.add('visible');
+        }, 1200);
+      } else {
+        hint.textContent = 'The riddle is not yet solved.';
+        hint.classList.add('error');
+        input.value = '';
+        input.animate(
+          [{ transform:'translateX(-6px)' }, { transform:'translateX(6px)' },
+           { transform:'translateX(-4px)' }, { transform:'translateX(4px)' },
+           { transform:'translateX(0)' }],
+          { duration: 360, easing: 'ease-out' }
+        );
+      }
+    }
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+</script>
+</body>
+</html>
